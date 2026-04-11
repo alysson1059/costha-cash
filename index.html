@@ -183,6 +183,8 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    const auth = firebase.auth();
+
     // --- FUNÇÃO PARA SALVAR CUPOM ---
     function salvarCupom() {
         const nome = document.getElementById('nome').value.trim();
@@ -223,19 +225,24 @@
     }
 
     // --- FUNÇÃO DE LOGIN ADM ---
-    function fazerLogin() {
-        const email = document.getElementById('emailAdm').value;
-        const senha = document.getElementById('senhaAdm').value;
+  function fazerLogin() {
+    const email = document.getElementById('emailAdm').value;
+    const senha = document.getElementById('senhaAdm').value;
 
-        // Defina aqui seu e-mail e senha de acesso ao painel
-        if(email === "admin@costha.com" && senha === "vip123") {
+    // O Firebase agora valida o seu e-mail e senha cadastrados lá no console
+    auth.signInWithEmailAndPassword(email, senha)
+        .then((userCredential) => {
+            // Login com sucesso!
             document.getElementById('loginAdm').style.display = 'none';
             document.getElementById('painelReal').style.display = 'block';
             document.querySelector('.admin-btn').style.display = 'none';
-        } else {
-            alert("Acesso negado. Verifique suas credenciais.");
-        }
-    }
+            console.log("ADM Autenticado!");
+        })
+        .catch((error) => {
+            // Erro no login (E-mail ou senha errados no Firebase)
+            alert("Erro no acesso: " + error.message);
+        });
+}
 
     // --- FUNÇÃO DE SORTEIO ---
     function sortear() {
