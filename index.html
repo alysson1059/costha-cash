@@ -228,21 +228,37 @@
 
     // --- FUNÇÃO DE LOGIN ADM ---
   function fazerLogin() {
-    const email = document.getElementById('emailAdm').value;
+    const email = document.getElementById('emailAdm').value.trim();
     const senha = document.getElementById('senhaAdm').value;
 
-    // O Firebase agora valida o seu e-mail e senha cadastrados lá no console
+    if (!email || !senha) {
+        alert("Por favor, preencha o e-mail e a senha.");
+        return;
+    }
+
+    // Tenta logar no Firebase
     auth.signInWithEmailAndPassword(email, senha)
         .then((userCredential) => {
-            // Login com sucesso!
+            // Se der certo, limpa e abre o painel
             document.getElementById('loginAdm').style.display = 'none';
             document.getElementById('painelReal').style.display = 'block';
             document.querySelector('.admin-btn').style.display = 'none';
-            console.log("ADM Autenticado!");
+            alert("Acesso permitido! Bem-vindo.");
         })
         .catch((error) => {
-            // Erro no login (E-mail ou senha errados no Firebase)
-            alert("Erro no acesso: " + error.message);
+            // Aqui tratamos o erro para o usuário
+            console.error("Erro técnico:", error.code);
+            
+            // Independente do erro técnico, mostramos a mesma mensagem amigável
+            if (error.code === 'auth/invalid-credential' || 
+                error.code === 'auth/user-not-found' || 
+                error.code === 'auth/wrong-password') {
+                alert("Acesso negado: E-mail ou senha incorretos.");
+            } else if (error.code === 'auth/too-many-requests') {
+                alert("Muitas tentativas falhas. Tente novamente mais tarde.");
+            } else {
+                alert("Erro ao tentar fazer login. Verifique sua conexão.");
+            }
         });
 }
 
