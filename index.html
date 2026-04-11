@@ -22,19 +22,19 @@
 
         body { background-color: var(--bg-body); color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
 
-        /* Banner Principal Moderno - Focado na Foto INTEIRA */
+       /* Banner Principal - Alinhado à esquerda para focar no seu rosto */
         header {
             position: relative;
             background-image: url('imagem.jpg');
-            background-size: cover; /* Mantém a foto preenchendo o espaço */
+            background-size: cover;
             
-            /* --- CORREÇÃO AQUI: Posiciona a foto pelo TOPO e CENTRO --- */
-            background-position: center top; 
+            /* ALTERAÇÃO AQUI: 'left top' mantém você na tela mesmo no celular */
+            background-position: left top; 
             
-            height: 80vh; /* Ocupa 80% da altura da tela para impacto */
+            height: 80vh;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end; /* Título na parte de baixo da foto */
+            justify-content: flex-end;
             padding: 40px;
             border-bottom: 2px solid var(--teal-dim);
         }
@@ -105,12 +105,18 @@
         .reveal-btn:hover { background: rgba(0,242,254,0.1);}
 
         /* Responsividade */
-        @media (max-width: 768px) {
-            header h1 { font-size: 2.5rem; letter-spacing: 2px;}
-            header { height: 60vh; padding: 20px;}
-            .main-content { margin-top: -40px; padding: 20px;}
-            .container { padding: 30px 20px; }
-            h2 { font-size: 1.6rem; }
+       @media (max-width: 768px) {
+            header {
+                height: 55vh; /* Altura menor no celular */
+                background-position: left top; /* Garante que o rosto na esquerda apareça */
+                background-size: cover; 
+            }
+            header h1 {
+                font-size: 2.2rem;
+                text-shadow: 0 0 10px #000; /* Melhora a leitura sobre a foto */
+            }
+            .main-content { margin-top: -30px; padding: 15px;}
+            .container { padding: 25px 15px; }
         }
     </style>
 </head>
