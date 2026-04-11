@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Costha Cash | Plataforma VIP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta Dark & Neon Teal */
+            --bg-body: #0a0e17;       /* Fundo super escuro, quase preto */
+            --bg-card: #141b29;       /* Fundo do formulário, um pouco mais claro */
+            --text-main: #ffffff;     /* Texto branco puro */
+            --text-muted: #a0aab5;   /* Texto secundário cinza claro */
+            --teal-neon: #00f2fe;    /* Destaque principal: Teal vibrante */
+            --teal-gradient: linear-gradient(45deg, #00f2fe, #4facfe); /* Gradiente moderno */
+            --teal-dim: #008c99;      /* Teal mais escuro para bordas */
+            --black-leather: #000000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Exo 2', sans-serif; }
+
+        body { background-color: var(--bg-body); color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
+
+        /* Banner Principal Moderno - Focado na Foto */
+        header {
+            position: relative;
+            background-image: url('imagem.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 80vh; /* Ocupa 80% da altura da tela para impacto */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Título na parte de baixo da foto */
+            padding: 40px;
+            border-bottom: 2px solid var(--teal-dim);
+        }
+
+        /* Sobreposição Gradiente na Foto (Dark Overlay) */
+        header::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(10,14,23,0) 0%, rgba(10,14,23,0.9) 100%);
+            z-index: 1;
+        }
+
+        header .header-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; text-align: center;}
+        header h1 { 
+            font-size: 4rem; font-weight: 800; text-transform: uppercase; letter-spacing: 4px; 
+            background: var(--teal-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0,242,254,0.5); margin-bottom: 10px;
+        }
+        header p { font-size: 1.2rem; color: var(--text-muted); font-weight: 400; letter-spacing: 1px;}
+
+        /* Conteúdo Principal (O Formulário) */
+        .main-content { padding: 40px 20px; position: relative; z-index: 10; margin-top: -60px; } /* Sobe um pouco o form */
+
+        .container { 
+            max-width: 600px; margin: 0 auto; background: var(--bg-card); padding: 40px; 
+            border-radius: 12px; border: 1px solid rgba(0,242,254,0.1); /* Bordas sutis neon */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        h2 { margin-bottom: 30px; text-align: center; color: var(--text-main); font-weight: 700; font-size: 2rem; letter-spacing: 1px; text-transform: uppercase;}
+
+        .form-group { margin-bottom: 25px; }
+        label { display: block; font-weight: 600; margin-bottom: 10px; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;}
+        input { 
+            width: 100%; padding: 16px; background-color: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; outline: none; 
+            transition: 0.3s; font-size: 1rem; color: var(--text-main);
+        }
+        input:focus { border-color: var(--teal-neon); background-color: rgba(255,255,255,0.05); box-shadow: 0 0 10px rgba(0,242,254,0.2);}
+
+        /* Botão Principal Neon */
+        .btn-register { 
+            width: 100%; padding: 18px; background: var(--teal-gradient); border: none; 
+            color: var(--black-leather); font-weight: 800; font-size: 1.2rem; border-radius: 8px; 
+            cursor: pointer; transition: 0.4s; text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(0,242,254,0.3);
+        }
+        .btn-register:hover { 
+            transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,242,254,0.5); 
+        }
+
+        /* Mensagens */
+        .error { color: #ff6b6b; font-weight: 600; margin-top: 20px; display: none; text-align: center; background: rgba(255,107,107,0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,107,107,0.3);}
+        .success { color: var(--teal-neon); font-weight: 600; margin-top: 20px; display: none; text-align: center; background: rgba(0,242,254,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,242,254,0.3);}
+
+        /* Área Administrativa Dark Tech */
+        .admin-section { margin-top: 60px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 40px; text-align: center; }
+        .admin-btn { background: #1a2236; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 12px 24px; font-size: 0.85rem; width: auto; display: inline-block; border-radius: 30px; text-transform: uppercase; letter-spacing: 1px;}
+        .admin-btn:hover { background: #232e48; color: var(--text-main); border-color: rgba(255,255,255,0.2);}
+        
+        #loginAdm { display:none; margin: 25px auto 0; max-width: 350px; background: #1a2236; padding: 25px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);}
+        #painelReal { display: none; margin-top: 40px; background: #111827; padding: 30px; border-radius: 12px; border: 1px solid var(--teal-dim);}
+        
+        .sorteado-card { background: #1f2937; margin: 15px 0; padding: 25px; border-radius: 10px; border-left: 5px solid var(--teal-neon); text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .sorteado-card strong { color: var(--teal-neon); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;}
+        .reveal-btn { padding: 8px 15px; font-size: 0.8rem; width: auto; display: inline-block; margin-top: 10px; background: transparent; color: var(--teal-neon); border: 1px solid var(--teal-neon); text-transform: uppercase; border-radius: 4px;}
+        .reveal-btn:hover { background: rgba(0,242,254,0.1);}
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            header h1 { font-size: 2.5rem; letter-spacing: 2px;}
+            header { height: 60vh; padding: 20px;}
+            .main-content { margin-top: -40px; padding: 20px;}
+            .container { padding: 30px 20px; }
+            h2 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <h1>Costha Cash</h1>
+        <p>A PLATAFORMA EXCLUSIVA PARA SEGUIDORES VIP</p>
+    </div>
+</header>
+
+<div class="main-content">
+    <div class="container">
+        <h2>CADASTRE SEU CUPOM</h2>
+        <div class="form-group">
+            <label>NOME COMPLETO</label>
+            <input type="text" id="nome" placeholder="Seu nome aqui">
+        </div>
+        <div class="form-group">
+            <label>WHATSAPP (DDD + 9 + NÚMERO)</label>
+            <input type="tel" id="tel" placeholder="Ex: 11987654321" maxlength="15">
+        </div>
+        <div class="form-group">
+            <label>CÓDIGO DA COMPRA (SHOPEE / ML)</label>
+            <input type="text" id="cupom" placeholder="Digite o número do pedido">
+        </div>
+        <button onclick="salvarCupom()" class="btn-register">REGISTRAR COMPRA AGORA</button>
+        <p id="msgErro" class="error">ERRO: Este cupom já está cadastrado no sistema!</p>
+        <p id="msgSucesso" class="success">SUCESSO: Sua compra foi validada e registrada.</p>
+
+        <div class="admin-section">
+            <button class="admin-btn" onclick="toggleLogin()">PAINEL DO ADMINISTRADOR</button>
+            
+            <div id="loginAdm">
+                <input type="email" id="emailAdm" placeholder="E-mail ADM" style="margin-bottom:12px;">
+                <input type="password" id="senhaAdm" placeholder="Senha ADM">
+                <button onclick="fazerLogin()" style="margin-top:15px; background:var(--bg-body); color:var(--text-main); border: 1px solid rgba(255,255,255,0.1);">ACESSAR</button>
+            </div>
+
+            <div id="painelReal">
+                <h3 style="color:var(--text-main); margin-bottom: 25px; text-transform: uppercase;">GERENCIAR SORTEIO VIP</h3>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; color: var(--text-muted);">
+                    <label style="margin: 0; text-transform: none;">Número de Ganhadores (1-5):</label>
+                    <input type="number" id="qtdSorteio" min="1" max="5" value="1" style="width: 70px; text-align: center; padding: 10px; background: rgba(0,0,0,0.2);">
+                </div>
+                <button onclick="sortear()" class="btn-register" style="background: #1f2937; color: var(--teal-neon); border: 1px solid var(--teal-neon); box-shadow: none;">REALIZAR SORTEIO AGORA</button>
+                <div id="resultadoSorteio" style="margin-top: 30px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Banco de dados local simples usando LocalStorage
+    let cuponsDB = JSON.parse(localStorage.getItem('costhaCashCupons')) || [];
+
+    function salvarCupom() {
+        const nome = document.getElementById('nome').value.trim();
+        const telRaw = document.getElementById('tel').value.replace(/\D/g, ''); // Pega só os números
+        const cupom = document.getElementById('cupom').value.trim();
+        const erro = document.getElementById('msgErro');
+        const sucesso = document.getElementById('msgSucesso');
+
+        if(!nome || telRaw.length < 10 || !cupom) {
+             alert("Preencha todos os campos corretamente (Nome, Telefone com DDD e Cupom).");
+             return;
+        }
+
+        // Verificar se o cupom já existe
+        const existe = cuponsDB.find(item => item.cupom === cupom);
+        if(existe) {
+            erro.style.display = 'block';
+            sucesso.style.display = 'none';
+            return;
+        }
+
+        // Adicionar novo cupom e salvar no LocalStorage
+        cuponsDB.push({ nome, tel: telRaw, cupom });
+        localStorage.setItem('costhaCashCupons', JSON.stringify(cuponsDB));
+        
+        erro.style.display = 'none';
+        sucesso.style.display = 'block';
+        
+        // Limpar campos
+        document.getElementById('nome').value = "";
+        document.getElementById('tel').value = "";
+        document.getElementById('cupom').value = "";
+    }
+
+    function toggleLogin() {
+        const box = document.getElementById('loginAdm');
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function fazerLogin() {
+        const email = document.getElementById('emailAdm').value;
+        const senha = document.getElementById('senhaAdm').value;
+
+        // **IMPORTANTE**: Altere estas credenciais!
+        if(email === "admin@costha.com" && senha === "vip123") {
+            document.getElementById('loginAdm').style.display = 'none';
+            document.getElementById('painelReal').style.display = 'block';
+            document.querySelector('.admin-btn').style.display = 'none'; 
+        } else {
+            alert("Credenciais de administrador incorretas.");
+        }
+    }
+
+    function sortear() {
+        let qtd = parseInt(document.getElementById('qtdSorteio').value);
+        const resultadoDiv = document.getElementById('resultadoSorteio');
+        resultadoDiv.innerHTML = "";
+
+        if(cuponsDB.length === 0) {
+            alert("Não há cupons cadastrados para realizar o sorteio.");
+            return;
+        }
+
+        if (qtd < 1) qtd = 1;
+        if (qtd > 5) qtd = 5;
+        if (qtd > cuponsDB.length) qtd = cuponsDB.length;
+
+        // Cria cópia e embaralha
+        let sorteaveis = [...cuponsDB];
+        let sorteados = [];
+
+        for (let i = 0; i < qtd; i++) {
+            const indexAleatorio = Math.floor(Math.random() * sorteaveis.length);
+            sorteados.push(sorteveis[indexAleatorio]);
+            sorteaveis.splice(indexAleatorio, 1); 
+        }
+
+        sorteados.forEach((s, index) => {
+            const ultimos4 = s.tel.slice(-4);
+            const card = document.createElement('div');
+            card.className = 'sorteado-card';
+            card.innerHTML = `
+                <strong>${index+1}º Ganhador(a):</strong> ${s.nome}<br>
+                <span style="color:var(--text-muted);">WhatsApp: ****-****${ultimos4}</span><br>
+                <button onclick="revelarTelefone(this, '${s.tel}')" class="reveal-btn">Revelar Número</button>
+            `;
+            resultadoDiv.appendChild(card);
+        });
+    }
+
+    function revelarTelefone(btn, telCompleto) {
+        const ddd = telCompleto.slice(0, 2);
+        const nove = telCompleto.slice(2, 3);
+        const parte1 = telCompleto.slice(3, 7);
+        const parte2 = telCompleto.slice(7, 11);
+        btn.parentElement.innerHTML = btn.parentElement.innerHTML.split('<button')[0] + `<br><span style="color:var(--text-main); font-size:1.1rem; font-weight:600;">(${ddd}) ${nove} ${parte1}-${parte2}</span>`;
+    }
+</script>
+
+</body>
+</html>
