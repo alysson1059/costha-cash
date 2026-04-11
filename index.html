@@ -152,16 +152,27 @@
             </div>
 
             <div id="painelReal">
-                <h3 style="color:var(--text-main); margin-bottom: 25px; text-transform: uppercase;">GERENCIAR SORTEIO VIP</h3>
-                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; color: var(--text-muted);">
-                    <label style="margin: 0; text-transform: none;">Número de Ganhadores (1-5):</label>
-                    <input type="number" id="qtdSorteio" min="1" max="5" value="1" style="width: 70px; text-align: center; padding: 10px; background: rgba(0,0,0,0.2);">
-                </div>
-                <button onclick="sortear()" class="btn-register" style="background: #1f2937; color: var(--teal-neon); border: 1px solid var(--teal-neon); box-shadow: none;">REALIZAR SORTEIO AGORA</button>
-                <div id="resultadoSorteio" style="margin-top: 30px;"></div>
+    <h3 style="color:var(--text-main); margin-bottom: 25px; text-transform: uppercase;">GERENCIAR SORTEIO VIP</h3>
+
+    <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+        <div style="display: flex; gap: 10px;">
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                <label style="font-size: 0.7rem; color: var(--text-muted);">DATA INICIAL</label>
+                <input type="date" id="dataInicio" style="width: 150px; padding: 8px; font-size: 0.8rem;">
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                <label style="font-size: 0.7rem; color: var(--text-muted);">DATA FINAL</label>
+                <input type="date" id="dataFim" style="width: 150px; padding: 8px; font-size: 0.8rem;">
             </div>
         </div>
     </div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; color: var(--text-muted);">
+        <label style="margin: 0; text-transform: none;">Número de Ganhadores (1-5):</label>
+        <input type="number" id="qtdSorteio" min="1" max="5" value="1" style="width: 70px; text-align: center; padding: 10px; background: rgba(0,0,0,0.2);">
+    </div>
+    
+    <button onclick="sortear()" class="btn-register" style="background: #1f2937; color: var(--teal-neon); border: 1px solid var(--teal-neon); box-shadow: none;">REALIZAR SORTEIO AGORA</button>
+    <div id="resultadoSorteio" style="margin-top: 30px;"></div>
 </div>
 
 
@@ -263,40 +274,62 @@
 }
 
     // --- FUNÇÃO DE SORTEIO ---
-    function sortear() {
-        const resultadoDiv = document.getElementById('resultadoSorteio');
-        resultadoDiv.innerHTML = "<p style='color:var(--teal-neon)'>Buscando cupons...</p>";
+   function sortear() {
+    const resultadoDiv = document.getElementById('resultadoSorteio');
+    const dataInicio = document.getElementById('dataInicio').value;
+    const dataFim = document.getElementById('dataFim').value;
+    
+    resultadoDiv.innerHTML = "<p style='color:var(--teal-neon)'>Filtrando cupons...</p>";
 
-        database.ref('cupons').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if(!data) {
-                resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom cadastrado ainda.</p>";
-                return;
-            }
+    database.ref('cupons').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if(!data) {
+            resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom no sistema.</p>";
+            return;
+        }
 
-            const listaCupons = Object.values(data);
-            let qtd = parseInt(document.getElementById('qtdSorteio').value);
-            resultadoDiv.innerHTML = "";
+        let listaCupons = Object.values(data);
 
-            if (qtd > listaCupons.length) qtd = listaCupons.length;
-
-            // Embaralha e seleciona
-            let sorteados = listaCupons.sort(() => 0.5 - Math.random()).slice(0, qtd);
-
-            sorteados.forEach((s, index) => {
-                const ultimos4 = s.tel.slice(-4);
-                const ddd = s.tel.slice(0, 2);
-                const card = document.createElement('div');
-                card.className = 'sorteado-card';
-                card.innerHTML = `
-                    <strong>${index+1}º Ganhador(a):</strong> ${s.nome}<br>
-                    <span style="color:var(--text-muted);">WhatsApp: (${ddd}) ****-****${ultimos4}</span><br>
-                    <button onclick="revelarSorteado(this, '${s.tel}')" class="reveal-btn">Revelar Número</button>
-                `;
-                resultadoDiv.appendChild(card);
+        // --- LÓGICA DE FILTRO POR DATA ---
+        if (dataInicio || dataFim) {
+            listaCupons = listaCupons.filter(cupom => {
+                // Remove o horário da data de cadastro para comparar apenas o dia
+                const dataCupom = cupom.data_cadastro.split('T')[0];
+                
+                let checkInicio = dataInicio ? (dataCupom >= dataInicio) : true;
+                let checkFim = dataFim ? (dataCupom <= dataFim) : true;
+                
+                return checkInicio && checkFim;
             });
+        }
+
+        if (listaCupons.length === 0) {
+            resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom encontrado nesse período.</p>";
+            return;
+        }
+
+        let qtd = parseInt(document.getElementById('qtdSorteio').value);
+        resultadoDiv.innerHTML = "";
+        if (qtd > listaCupons.length) qtd = listaCupons.length;
+
+        // Sorteio aleatório
+        let sorteados = listaCupons.sort(() => 0.5 - Math.random()).slice(0, qtd);
+
+        sorteados.forEach((s, index) => {
+            const ultimos4 = s.tel.slice(-4);
+            const ddd = s.tel.slice(0, 2);
+            const card = document.createElement('div');
+            card.className = 'sorteado-card';
+            card.innerHTML = `
+                <strong>${index+1}º Ganhador(a):</strong> ${s.nome}<br>
+                <span style="font-size:0.7rem; color:var(--teal-neon)">Data: ${s.data_cadastro.split('T')[0]}</span><br>
+                <span style="color:var(--text-muted);">WhatsApp: (${ddd}) ****-****${ultimos4}</span><br>
+                <button onclick="revelarSorteado(this, '${s.tel}')" class="reveal-btn">Revelar Número</button>
+            `;
+            resultadoDiv.appendChild(card);
         });
-    }
+    });
+}
 function revelarSorteado(btn, tel) {
     // Essa linha garante que o número apareça formatado corretamente (XX) X XXXX-XXXX
     const formatado = `(${tel.slice(0,2)}) ${tel.slice(2,7)}-${tel.slice(7)}`;
