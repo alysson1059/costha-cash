@@ -151,7 +151,7 @@
                 <button onclick="fazerLogin()" style="margin-top:15px; background:var(--bg-body); color:var(--text-main); border: 1px solid rgba(255,255,255,0.1);">ACESSAR</button>
             </div>
 
-            <div id="painelReal">
+          <div id="painelReal">
     <h3 style="color:var(--text-main); margin-bottom: 25px; text-transform: uppercase;">GERENCIAR SORTEIO VIP</h3>
 
     <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
@@ -166,9 +166,24 @@
             </div>
         </div>
     </div>
+
+    <div id="contadorCupons" style="color: var(--teal-neon); font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; text-align: center;">
+        CUPONS NO PERÍODO: <span id="totalFiltrado">0</span>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="buscaCupom" placeholder="Pesquisar por nome ou telefone..." 
+               style="width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--teal-dim); border-radius: 8px; color: white;"
+               oninput="atualizarPainelAdm()">
+    </div>
+
+    <div id="listaPesquisa" style="max-height: 250px; overflow-y: auto; margin-bottom: 25px; text-align: left; font-size: 0.85rem; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+        <p style="padding: 15px; color: var(--text-muted); text-align: center;">Aguardando filtros ou pesquisa...</p>
+    </div>
+
     <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; color: var(--text-muted);">
         <label style="margin: 0; text-transform: none;">Número de Ganhadores (1-5):</label>
-        <input type="number" id="qtdSorteio" min="1" max="5" value="1" style="width: 70px; text-align: center; padding: 10px; background: rgba(0,0,0,0.2);">
+        <input type="number" id="qtdSorteio" min="1" max="5" value="1" style="width: 70px; text-align: center; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid #333; color: white; border-radius: 5px;">
     </div>
     
     <button onclick="sortear()" class="btn-register" style="background: #1f2937; color: var(--teal-neon); border: 1px solid var(--teal-neon); box-shadow: none;">REALIZAR SORTEIO AGORA</button>
@@ -340,6 +355,56 @@ function revelarSorteado(btn, tel) {
         const box = document.getElementById('loginAdm');
         box.style.display = box.style.display === 'none' ? 'block' : 'none';
     }
+
+    function atualizarPainelAdm() {
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+        const busca = document.getElementById('buscaCupom').value.toLowerCase();
+        const totalSpan = document.getElementById('totalFiltrado');
+        const listaDiv = document.getElementById('listaPesquisa');
+
+        database.ref('cupons').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) { totalSpan.innerText = "0"; return; }
+
+            let cupons = Object.values(data);
+
+            if (dataInicio || dataFim) {
+                cupons = cupons.filter(c => {
+                    const dataC = c.data_cadastro.split('T')[0];
+                    return (dataInicio ? dataC >= dataInicio : true) && (dataFim ? dataC <= dataFim : true);
+                });
+            }
+
+            if (busca) {
+                cupons = cupons.filter(c => c.nome.toLowerCase().includes(busca) || c.tel.includes(busca));
+            }
+
+            totalSpan.innerText = cupons.length;
+
+            if (busca || dataInicio || dataFim) {
+                listaDiv.innerHTML = cupons.map(c => `
+                    <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; color: #eee;">
+                        <b style="color:var(--teal-neon)">Nome:</b> ${c.nome}<br>
+                        <b>Cupom:</b> ${c.cupom} | <b>Tel:</b> ${c.tel}<br>
+                        <small style="color:var(--text-muted)">Cadastrado em: ${new Date(c.data_cadastro).toLocaleString('pt-BR')}</small>
+                    </div>
+                `).join('');
+            } else {
+                listaDiv.innerHTML = "<p style='padding:10px; color:var(--text-muted)'>Filtre para listar.</p>";
+            }
+        });
+    }
+
+    // Monitora o login para ativar os filtros
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            atualizarPainelAdm();
+            document.getElementById('dataInicio').addEventListener('change', atualizarPainelAdm);
+            document.getElementById('dataFim').addEventListener('change', atualizarPainelAdm);
+        }
+    });
+    
 </script>
 
 </body>
