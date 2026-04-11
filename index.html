@@ -164,105 +164,123 @@
     </div>
 </div>
 
-<script>
-    // Banco de dados local simples usando LocalStorage
-    let cuponsDB = JSON.parse(localStorage.getItem('costhaCashCupons')) || [];
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
+<script>
+    // 2. SUAS CONFIGURAÇÕES DO FIREBASE (Inseridas aqui)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAcLU51QcxPOZJr8Hy0cUwDdizzJSyBbn4",
+        authDomain: "costha-cash.firebaseapp.com",
+        databaseURL: "https://costha-cash-default-rtdb.firebaseio.com",
+        projectId: "costha-cash",
+        storageBucket: "costha-cash.firebasestorage.app",
+        messagingSenderId: "555325857677",
+        appId: "1:555325857677:web:ca49a5b56df98fa1e7a7c4"
+    };
+
+    // Inicializar o Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // --- FUNÇÃO PARA SALVAR CUPOM ---
     function salvarCupom() {
         const nome = document.getElementById('nome').value.trim();
-        const telRaw = document.getElementById('tel').value.replace(/\D/g, ''); // Pega só os números
+        const telRaw = document.getElementById('tel').value.replace(/\D/g, '');
         const cupom = document.getElementById('cupom').value.trim();
         const erro = document.getElementById('msgErro');
         const sucesso = document.getElementById('msgSucesso');
 
         if(!nome || telRaw.length < 10 || !cupom) {
-             alert("Preencha todos os campos corretamente (Nome, Telefone com DDD e Cupom).");
+             alert("Por favor, preencha todos os campos corretamente.");
              return;
         }
 
-        // Verificar se o cupom já existe
-        const existe = cuponsDB.find(item => item.cupom === cupom);
-        if(existe) {
-            erro.style.display = 'block';
-            sucesso.style.display = 'none';
-            return;
-        }
+        // Verifica no Firebase se o cupom já existe
+        database.ref('cupons/' + cupom).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                erro.style.display = 'block';
+                sucesso.style.display = 'none';
+            } else {
+                // Se não existir, salva o novo
+                database.ref('cupons/' + cupom).set({
+                    nome: nome,
+                    tel: telRaw,
+                    cupom: cupom,
+                    data_cadastro: new Date().toISOString()
+                }).then(() => {
+                    erro.style.display = 'none';
+                    sucesso.style.display = 'block';
+                    // Limpa os campos
+                    document.getElementById('nome').value = "";
+                    document.getElementById('tel').value = "";
+                    document.getElementById('cupom').value = "";
+                }).catch((error) => {
+                    alert("Erro ao salvar: " + error.message);
+                });
+            }
+        });
+    }
 
-        // Adicionar novo cupom e salvar no LocalStorage
-        cuponsDB.push({ nome, tel: telRaw, cupom });
-        localStorage.setItem('costhaCashCupons', JSON.stringify(cuponsDB));
-        
-        erro.style.display = 'none';
-        sucesso.style.display = 'block';
-        
-        // Limpar campos
-        document.getElementById('nome').value = "";
-        document.getElementById('tel').value = "";
-        document.getElementById('cupom').value = "";
+    // --- FUNÇÃO DE LOGIN ADM ---
+    function fazerLogin() {
+        const email = document.getElementById('emailAdm').value;
+        const senha = document.getElementById('senhaAdm').value;
+
+        // Defina aqui seu e-mail e senha de acesso ao painel
+        if(email === "admin@costha.com" && senha === "vip123") {
+            document.getElementById('loginAdm').style.display = 'none';
+            document.getElementById('painelReal').style.display = 'block';
+            document.querySelector('.admin-btn').style.display = 'none';
+        } else {
+            alert("Acesso negado. Verifique suas credenciais.");
+        }
+    }
+
+    // --- FUNÇÃO DE SORTEIO ---
+    function sortear() {
+        const resultadoDiv = document.getElementById('resultadoSorteio');
+        resultadoDiv.innerHTML = "<p style='color:var(--teal-neon)'>Buscando cupons...</p>";
+
+        database.ref('cupons').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if(!data) {
+                resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom cadastrado ainda.</p>";
+                return;
+            }
+
+            const listaCupons = Object.values(data);
+            let qtd = parseInt(document.getElementById('qtdSorteio').value);
+            resultadoDiv.innerHTML = "";
+
+            if (qtd > listaCupons.length) qtd = listaCupons.length;
+
+            // Embaralha e seleciona
+            let sorteados = listaCupons.sort(() => 0.5 - Math.random()).slice(0, qtd);
+
+            sorteados.forEach((s, index) => {
+                const ultimos4 = s.tel.slice(-4);
+                const ddd = s.tel.slice(0, 2);
+                const card = document.createElement('div');
+                card.className = 'sorteado-card';
+                card.innerHTML = `
+                    <strong>${index+1}º Ganhador(a):</strong> ${s.nome}<br>
+                    <span style="color:var(--text-muted);">WhatsApp: (${ddd}) ****-****${ultimos4}</span><br>
+                    <button onclick="revelarSorteado(this, '${s.tel}')" class="reveal-btn">Revelar Número</button>
+                `;
+                resultadoDiv.appendChild(card);
+            });
+        });
+    }
+
+    function revelarSorteado(btn, tel) {
+        const formatado = `(${tel.slice(0,2)}) ${tel.slice(2,3)} ${tel.slice(3,7)}-${tel.slice(7)}`;
+        btn.parentElement.innerHTML = btn.parentElement.innerHTML.split('<button')[0] + `<br><span style="color:var(--teal-neon); font-size:1.1rem; font-weight:600;">${formatado}</span>`;
     }
 
     function toggleLogin() {
         const box = document.getElementById('loginAdm');
         box.style.display = box.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function fazerLogin() {
-        const email = document.getElementById('emailAdm').value;
-        const senha = document.getElementById('senhaAdm').value;
-
-        // **IMPORTANTE**: Altere estas credenciais!
-        if(email === "admin@costha.com" && senha === "vip123") {
-            document.getElementById('loginAdm').style.display = 'none';
-            document.getElementById('painelReal').style.display = 'block';
-            document.querySelector('.admin-btn').style.display = 'none'; 
-        } else {
-            alert("Credenciais de administrador incorretas.");
-        }
-    }
-
-    function sortear() {
-        let qtd = parseInt(document.getElementById('qtdSorteio').value);
-        const resultadoDiv = document.getElementById('resultadoSorteio');
-        resultadoDiv.innerHTML = "";
-
-        if(cuponsDB.length === 0) {
-            alert("Não há cupons cadastrados para realizar o sorteio.");
-            return;
-        }
-
-        if (qtd < 1) qtd = 1;
-        if (qtd > 5) qtd = 5;
-        if (qtd > cuponsDB.length) qtd = cuponsDB.length;
-
-        // Cria cópia e embaralha
-        let sorteaveis = [...cuponsDB];
-        let sorteados = [];
-
-        for (let i = 0; i < qtd; i++) {
-            const indexAleatorio = Math.floor(Math.random() * sorteaveis.length);
-            sorteados.push(sorteveis[indexAleatorio]);
-            sorteaveis.splice(indexAleatorio, 1); 
-        }
-
-        sorteados.forEach((s, index) => {
-            const ultimos4 = s.tel.slice(-4);
-            const card = document.createElement('div');
-            card.className = 'sorteado-card';
-            card.innerHTML = `
-                <strong>${index+1}º Ganhador(a):</strong> ${s.nome}<br>
-                <span style="color:var(--text-muted);">WhatsApp: ****-****${ultimos4}</span><br>
-                <button onclick="revelarTelefone(this, '${s.tel}')" class="reveal-btn">Revelar Número</button>
-            `;
-            resultadoDiv.appendChild(card);
-        });
-    }
-
-    function revelarTelefone(btn, telCompleto) {
-        const ddd = telCompleto.slice(0, 2);
-        const nove = telCompleto.slice(2, 3);
-        const parte1 = telCompleto.slice(3, 7);
-        const parte2 = telCompleto.slice(7, 11);
-        btn.parentElement.innerHTML = btn.parentElement.innerHTML.split('<button')[0] + `<br><span style="color:var(--text-main); font-size:1.1rem; font-weight:600;">(${ddd}) ${nove} ${parte1}-${parte2}</span>`;
     }
 </script>
 
