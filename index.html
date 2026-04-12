@@ -346,6 +346,15 @@
     }
 }
 
+    function toggleRegulamento() {
+    const reg = document.getElementById('textoRegulamento');
+    if (reg.style.display === 'none' || reg.style.display === '') {
+        reg.style.display = 'block';
+    } else {
+        reg.style.display = 'none';
+    }
+}
+
     // --- FUNÇÃO PARA SALVAR CUPOM ---
     function salvarCupom() {
         const nome = document.getElementById('nome').value.trim();
