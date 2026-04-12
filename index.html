@@ -209,13 +209,18 @@
                     💬 SUPORTE VIA WHATSAPP
                 </a>
 
-                <button onclick="toggleAjuda()" class="btn-apoio">
-                    🔍 COMO ACHAR CÓDIGO DA COMPRA?
-                </button>
+              <button onclick="toggleAjuda()" class="btn-apoio">
+    🔍 COMO ACHAR CÓDIGO DA COMPRA?
+</button>
 
-                <div id="manualCompra" style="display:none; margin-top: 15px;">
-                    <img src="socorro.jpg" alt="Como achar o código" style="width: 100%; border-radius: 8px; border: 1px solid var(--teal-neon);">
-                </div>
+<div id="manualCompra" style="display:none; margin-top: 15px; position: relative; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid var(--teal-dim);">
+    
+    <button onclick="toggleAjuda()" style="position: absolute; top: 5px; right: 5px; background: #ff6b6b; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold; z-index: 100;">X</button>
+    
+    <div style="max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--teal-neon) transparent;">
+        <img src="socorro.jpg" alt="Manual de Compra" style="width: 100%; display: block; border-radius: 4px;">
+    </div>
+</div>
 
                 <div style="margin-top: 10px;">
                     <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
@@ -295,10 +300,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-            function toggleAjuda() {
-        const manual = document.getElementById('manualCompra');
-        manual.style.display = (manual.style.display === 'none') ? 'block' : 'none';
-    }
+    
 
 <script>
     // 2. SUAS CONFIGURAÇÕES DO FIREBASE (Inseridas aqui)
@@ -317,6 +319,17 @@
     const database = firebase.database();
 
     const auth = firebase.auth();
+
+    function toggleAjuda() {
+    const manual = document.getElementById('manualCompra');
+    if (manual.style.display === 'none' || manual.style.display === '') {
+        manual.style.display = 'block';
+        // Faz a tela rolar suavemente até o manual para o usuário ver que abriu
+        manual.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        manual.style.display = 'none';
+    }
+}
 
     // --- FUNÇÃO PARA SALVAR CUPOM ---
     function salvarCupom() {
@@ -393,38 +406,35 @@
         });
 }
 
-    // --- FUNÇÃO DE SORTEIO ---
-   function sortear() {
+ function sortear() {
     const resultadoDiv = document.getElementById('resultadoSorteio');
     const dataInicio = document.getElementById('dataInicio').value;
     const dataFim = document.getElementById('dataFim').value;
+    const busca = document.getElementById('buscaCupom').value.toLowerCase();
     
-    resultadoDiv.innerHTML = "<p style='color:var(--teal-neon)'>Filtrando cupons...</p>";
+    resultadoDiv.innerHTML = "<p style='color:var(--teal-neon)'>Sorteando...</p>";
 
     database.ref('cupons').once('value', (snapshot) => {
         const data = snapshot.val();
-        if(!data) {
-            resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom no sistema.</p>";
-            return;
-        }
+        if(!data) return;
 
         let listaCupons = Object.values(data);
 
-        // --- LÓGICA DE FILTRO POR DATA ---
+        // Filtro de Data
         if (dataInicio || dataFim) {
-            listaCupons = listaCupons.filter(cupom => {
-                // Remove o horário da data de cadastro para comparar apenas o dia
-                const dataCupom = cupom.data_cadastro.split('T')[0];
-                
-                let checkInicio = dataInicio ? (dataCupom >= dataInicio) : true;
-                let checkFim = dataFim ? (dataCupom <= dataFim) : true;
-                
-                return checkInicio && checkFim;
+            listaCupons = listaCupons.filter(c => {
+                const dataC = c.data_cadastro.split('T')[0];
+                return (dataInicio ? dataC >= dataInicio : true) && (dataFim ? dataC <= dataFim : true);
             });
         }
 
+        // Filtro de Busca (Nome ou Telefone)
+        if (busca) {
+            listaCupons = listaCupons.filter(c => c.nome.toLowerCase().includes(busca) || c.tel.includes(busca));
+        }
+
         if (listaCupons.length === 0) {
-            resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom encontrado nesse período.</p>";
+            resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom para sortear com esses filtros.</p>";
             return;
         }
 
@@ -432,18 +442,14 @@
         resultadoDiv.innerHTML = "";
         if (qtd > listaCupons.length) qtd = listaCupons.length;
 
-        // Sorteio aleatório
         let sorteados = listaCupons.sort(() => 0.5 - Math.random()).slice(0, qtd);
 
         sorteados.forEach((s, index) => {
-            const ultimos4 = s.tel.slice(-4);
-            const ddd = s.tel.slice(0, 2);
             const card = document.createElement('div');
             card.className = 'sorteado-card';
             card.innerHTML = `
                 <strong>${index+1}º Ganhador(a):</strong> ${s.nome}<br>
-                <span style="font-size:0.7rem; color:var(--teal-neon)">Data: ${s.data_cadastro.split('T')[0]}</span><br>
-                <span style="color:var(--text-muted);">WhatsApp: (${ddd}) ****-****${ultimos4}</span><br>
+                <span style="color:var(--text-muted);">WhatsApp: (****) ****-${s.tel.slice(-4)}</span><br>
                 <button onclick="revelarSorteado(this, '${s.tel}')" class="reveal-btn">Revelar Número</button>
             `;
             resultadoDiv.appendChild(card);
