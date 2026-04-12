@@ -365,43 +365,56 @@
 }
 
     // --- FUNÇÃO PARA SALVAR CUPOM ---
-    function salvarCupom() {
-        const nome = document.getElementById('nome').value.trim();
-        const telRaw = document.getElementById('tel').value.replace(/\D/g, '');
-        const cupom = document.getElementById('cupom').value.trim();
-        const erro = document.getElementById('msgErro');
-        const sucesso = document.getElementById('msgSucesso');
+function salvarCupom() {
+    const nome = document.getElementById('nome').value.trim();
+    const telRaw = document.getElementById('tel').value.replace(/\D/g, '');
+    const cupom = document.getElementById('cupom').value.trim();
+    const plataforma = document.getElementById('plataforma').value; // Novo campo
+    
+    const erro = document.getElementById('msgErro');
+    const sucesso = document.getElementById('msgSucesso');
 
-        if(!nome || telRaw.length < 10 || !cupom) {
-             alert("Por favor, preencha todos os campos corretamente.");
-             return;
-        }
-
-        // Verifica no Firebase se o cupom já existe
-        database.ref('cupons/' + cupom).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                erro.style.display = 'block';
-                sucesso.style.display = 'none';
-            } else {
-                // Se não existir, salva o novo
-                database.ref('cupons/' + cupom).set({
-                    nome: nome,
-                    tel: telRaw,
-                    cupom: cupom,
-                    data_cadastro: new Date().toISOString()
-                }).then(() => {
-                    erro.style.display = 'none';
-                    sucesso.style.display = 'block';
-                    // Limpa os campos
-                    document.getElementById('nome').value = "";
-                    document.getElementById('tel').value = "";
-                    document.getElementById('cupom').value = "";
-                }).catch((error) => {
-                    alert("Erro ao salvar: " + error.message);
-                });
-            }
-        });
+    // Validação: Verifica se todos os campos (incluindo plataforma) foram preenchidos
+    if(!nome || telRaw.length < 10 || !cupom || !plataforma) {
+         alert("Por favor, preencha todos os campos e selecione a plataforma onde comprou.");
+         return;
     }
+
+    // Verifica no Firebase se o cupom já existe
+    database.ref('cupons/' + cupom).once('value', (snapshot) => {
+        if (snapshot.exists()) {
+            // Se já existe, mostra erro
+            erro.style.display = 'block';
+            sucesso.style.display = 'none';
+            // Rola até a mensagem de erro
+            erro.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Se não existir, salva o novo com o campo plataforma
+            database.ref('cupons/' + cupom).set({
+                nome: nome,
+                tel: telRaw,
+                cupom: cupom,
+                plataforma: plataforma, // Salva a escolha do usuário
+                data_cadastro: new Date().toISOString()
+            }).then(() => {
+                // Esconde erro e mostra sucesso
+                erro.style.display = 'none';
+                sucesso.style.display = 'block';
+                
+                // Limpa todos os campos do formulário
+                document.getElementById('nome').value = "";
+                document.getElementById('tel').value = "";
+                document.getElementById('cupom').value = "";
+                document.getElementById('plataforma').value = "";
+                
+                // Rola até a mensagem de sucesso
+                sucesso.scrollIntoView({ behavior: 'smooth' });
+            }).catch((error) => {
+                alert("Erro técnico ao salvar: " + error.message);
+            });
+        }
+    });
+}
 
     // --- FUNÇÃO DE LOGIN ADM ---
   function fazerLogin() {
@@ -527,13 +540,14 @@ function revelarSorteado(btn, tel) {
             totalSpan.innerText = cupons.length;
 
             if (busca || dataInicio || dataFim) {
-                listaDiv.innerHTML = cupons.map(c => `
-                    <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; color: #eee;">
-                        <b style="color:var(--teal-neon)">Nome:</b> ${c.nome}<br>
-                        <b>Cupom:</b> ${c.cupom} | <b>Tel:</b> ${c.tel}<br>
-                        <small style="color:var(--text-muted)">Cadastrado em: ${new Date(c.data_cadastro).toLocaleString('pt-BR')}</small>
-                    </div>
-                `).join('');
+              listaDiv.innerHTML = cupons.map(c => `
+    <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; color: #eee;">
+        <b style="color:var(--teal-neon)">Nome:</b> ${c.nome}<br>
+        <b>Loja:</b> ${c.plataforma || 'Não informado'} | <b>Cupom:</b> ${c.cupom}<br>
+        <b>Tel:</b> ${c.tel}<br>
+        <small style="color:var(--text-muted)">Cadastrado em: ${new Date(c.data_cadastro).toLocaleString('pt-BR')}</small>
+    </div>
+`).join('');
             } else {
                 listaDiv.innerHTML = "<p style='padding:10px; color:var(--text-muted)'>Filtre para listar.</p>";
             }
