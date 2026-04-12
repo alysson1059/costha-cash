@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Costha Cash | Plataforma VIP</title>
+    <title>CosthaCash | Plataforma VIP</title>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -467,12 +467,28 @@ function salvarCupom() {
         let listaCupons = Object.values(data);
 
         // Filtro de Data
-        if (dataInicio || dataFim) {
-            listaCupons = listaCupons.filter(c => {
-                const dataC = c.data_cadastro.split('T')[0];
-                return (dataInicio ? dataC >= dataInicio : true) && (dataFim ? dataC <= dataFim : true);
-            });
+        // --- LÓGICA CORRIGIDA PARA PEGAR O DIA ATUAL ---
+if (dataInicio || dataFim) {
+    cupons = cupons.filter(c => {
+        // Pega apenas a data (YYYY-MM-DD) do cadastro do cupom
+        const dataC = c.data_cadastro.split('T')[0];
+        
+        let checkInicio = true;
+        let checkFim = true;
+
+        if (dataInicio) {
+            checkInicio = (dataC >= dataInicio);
         }
+
+        if (dataFim) {
+            // Aqui está o segredo: comparamos apenas as strings das datas (YYYY-MM-DD)
+            // sem levar em conta as horas, assim o dia atual entra no filtro
+            checkFim = (dataC <= dataFim);
+        }
+        
+        return checkInicio && checkFim;
+    });
+}
 
         // Filtro de Busca (Nome ou Telefone)
         if (busca) {
