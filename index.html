@@ -254,8 +254,17 @@
             <label>WHATSAPP (DDD + 9 + NÚMERO)</label>
             <input type="tel" id="tel" placeholder="Ex: 11987654321" maxlength="15">
         </div>
+       <div class="form-group">
+            <label>ONDE VOCÊ COMPROU?</label>
+            <select id="plataforma" style="width: 100%; padding: 16px; background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text-main); outline: none; cursor: pointer;">
+                <option value="" disabled selected style="background: var(--bg-card);">Selecione a plataforma</option>
+                <option value="Shopee" style="background: var(--bg-card);">Shopee</option>
+                <option value="Mercado Livre" style="background: var(--bg-card);">Mercado Livre</option>
+            </select>
+        </div>
+
         <div class="form-group">
-            <label>CÓDIGO DA COMPRA (SHOPEE / ML)</label>
+            <label>CÓDIGO DA COMPRA</label>
             <input type="text" id="cupom" placeholder="Digite o número do pedido">
         </div>
         <button onclick="salvarCupom()" class="btn-register">REGISTRAR COMPRA AGORA</button>
