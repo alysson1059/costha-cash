@@ -493,6 +493,15 @@ function sortear() {
             );
         }
 
+        const telefonesSorteados = new Set();
+        listaCupons = listaCupons.filter(cupom => {
+            if (!telefonesSorteados.has(cupom.tel)) {
+                telefonesSorteados.add(cupom.tel);
+                return true;
+            }
+            return false;
+        });
+
         // Verifica se sobrou alguém após os filtros
         if (listaCupons.length === 0) {
             resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom disponível no período selecionado.</p>";
