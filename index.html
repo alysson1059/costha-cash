@@ -301,17 +301,17 @@
         </div>
     </div>
 
-  <!-- Procure por este ID e adicione o style conforme abaixo -->
-<div id="contadorCupons" style="display: none;">
-    CUPONS NO PERÍODO: <span id="totalFiltrado">0</span>
-</div>
+    <div id="contadorCupons" style="color: var(--teal-neon); font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; text-align: center;">
+        CUPONS NO PERÍODO: <span id="totalFiltrado">0</span>
+    </div>
+
     <div style="margin-bottom: 20px;">
         <input type="text" id="buscaCupom" placeholder="Pesquisar por nome ou telefone..." 
                style="width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--teal-dim); border-radius: 8px; color: white;"
                oninput="atualizarPainelAdm()">
     </div>
 
-   <div id="listaPesquisa" style="display: none;">
+    <div id="listaPesquisa" style="max-height: 250px; overflow-y: auto; margin-bottom: 25px; text-align: left; font-size: 0.85rem; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
         <p style="padding: 15px; color: var(--text-muted); text-align: center;">Aguardando filtros ou pesquisa...</p>
     </div>
 
@@ -492,15 +492,6 @@ function sortear() {
                 cupom.tel.includes(busca)
             );
         }
-
-        const telefonesSorteados = new Set();
-        listaCupons = listaCupons.filter(cupom => {
-            if (!telefonesSorteados.has(cupom.tel)) {
-                telefonesSorteados.add(cupom.tel);
-                return true;
-            }
-            return false;
-        });
 
         // Verifica se sobrou alguém após os filtros
         if (listaCupons.length === 0) {
