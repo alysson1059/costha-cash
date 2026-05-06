@@ -288,6 +288,10 @@
           <div id="painelReal">
     <h3 style="color:var(--text-main); margin-bottom: 25px; text-transform: uppercase;">GERENCIAR SORTEIO VIP</h3>
 
+<button onclick="sairAdmin()" style="margin-bottom:20px; background:#ff6b6b; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
+    SAIR
+</button>
+
     <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
         <div style="display: flex; gap: 10px;">
             <div style="display: flex; flex-direction: column; align-items: flex-start;">
@@ -348,6 +352,7 @@
     const database = firebase.database();
 
     const auth = firebase.auth();
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
     function toggleAjuda() {
     const manual = document.getElementById('manualCompra');
@@ -543,10 +548,15 @@ function revelarSorteado(btn, tel) {
     btn.parentElement.innerHTML = btn.parentElement.innerHTML.split('<button')[0] + `<br><span style="color:var(--teal-neon); font-size:1.1rem; font-weight:600;">${formatado}</span>`;
 }
 
-    function toggleLogin() {
-        const box = document.getElementById('loginAdm');
-        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+   function toggleLogin() {
+    const box = document.getElementById('loginAdm');
+
+    if (window.getComputedStyle(box).display === 'none') {
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
     }
+}
 
     function atualizarPainelAdm() {
         const dataInicio = document.getElementById('dataInicio').value;
@@ -590,13 +600,30 @@ function revelarSorteado(btn, tel) {
     }
 
     // Monitora o login para ativar os filtros
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            atualizarPainelAdm();
-            document.getElementById('dataInicio').addEventListener('change', atualizarPainelAdm);
-            document.getElementById('dataFim').addEventListener('change', atualizarPainelAdm);
-        }
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+        document.getElementById('loginAdm').style.display = 'none';
+        document.getElementById('painelReal').style.display = 'block';
+        document.querySelector('.admin-btn').style.display = 'none';
+
+        atualizarPainelAdm();
+
+        document.getElementById('dataInicio').addEventListener('change', atualizarPainelAdm);
+        document.getElementById('dataFim').addEventListener('change', atualizarPainelAdm);
+    } else {
+        document.getElementById('painelReal').style.display = 'none';
+        document.querySelector('.admin-btn').style.display = 'inline-block';
+    }
+});
+
+    function sairAdmin() {
+    auth.signOut().then(() => {
+        document.getElementById('painelReal').style.display = 'none';
+        document.getElementById('loginAdm').style.display = 'none';
+        document.querySelector('.admin-btn').style.display = 'inline-block';
+        alert("Você saiu do painel.");
     });
+}
     
 </script>
 
