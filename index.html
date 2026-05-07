@@ -364,6 +364,34 @@
     <div id="contadorCupons" style="color: var(--teal-neon); font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; text-align: center;">
         CUPONS NO PERÍODO: <span id="totalFiltrado">0</span>
     </div>
+              <div style="margin-bottom: 20px;">
+
+    <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+        FILTRAR PARTICIPANTES
+    </label>
+
+    <select id="filtroCategoria"
+        style="width:100%; padding:14px; background: rgba(255,255,255,0.05);
+        border:1px solid var(--teal-dim); border-radius:8px; color:white;"
+        onchange="atualizarPainelAdm()">
+
+        <option value="Todos">Todos</option>
+
+        <option value="Shopee">Shopee</option>
+
+        <option value="Mercado Livre">Mercado Livre</option>
+
+        <option value="Inscrito">Inscritos</option>
+
+        <option value="Bronzify">Bronzify</option>
+
+        <option value="Barunx">Barunx</option>
+
+        <option value="Zoíde">Zoíde</option>
+
+    </select>
+
+</div>
 
     <div style="margin-bottom: 20px;">
         <input type="text" id="buscaCupom" placeholder="Pesquisar por nome ou telefone..." 
@@ -675,6 +703,7 @@ function revelarSorteado(btn, tel) {
         const dataInicio = document.getElementById('dataInicio').value;
         const dataFim = document.getElementById('dataFim').value;
         const busca = document.getElementById('buscaCupom').value.toLowerCase();
+        const categoria = document.getElementById('filtroCategoria').value;
         const totalSpan = document.getElementById('totalFiltrado');
         const listaDiv = document.getElementById('listaPesquisa');
 
@@ -690,6 +719,10 @@ function revelarSorteado(btn, tel) {
                     return (dataInicio ? dataC >= dataInicio : true) && (dataFim ? dataC <= dataFim : true);
                 });
             }
+
+    if (categoria !== 'Todos') {
+    cupons = cupons.filter(c => c.plataforma === categoria);
+}
 
             if (busca) {
                 cupons = cupons.filter(c => c.nome.toLowerCase().includes(busca) || c.tel.includes(busca));
