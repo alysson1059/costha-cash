@@ -177,6 +177,38 @@
             background: rgba(0, 242, 254, 0.1);
             border-color: var(--teal-neon);
         }
+
+        .animacao-sorteio {
+    text-align: center;
+    padding: 25px;
+    margin-top: 20px;
+    border-radius: 12px;
+    background: rgba(0, 242, 254, 0.08);
+    border: 1px solid var(--teal-neon);
+    color: var(--teal-neon);
+    font-size: 1.3rem;
+    font-weight: 700;
+    animation: pulsarSorteio 0.8s infinite alternate;
+}
+
+.contagem {
+    font-size: 4rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 0 20px var(--teal-neon);
+    margin-top: 15px;
+}
+
+@keyframes pulsarSorteio {
+    from {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(0,242,254,0.2);
+    }
+    to {
+        transform: scale(1.03);
+        box-shadow: 0 0 30px rgba(0,242,254,0.6);
+    }
+}
         
     </style>
 </head>
@@ -469,22 +501,32 @@ function salvarCupom() {
 // --- FUNÇÃO DE SORTEIO COMPLETA E CORRIGIDA ---
 function sortear() {
     const resultadoDiv = document.getElementById('resultadoSorteio');
+    const botaoSortear = event.target;
+
     const dataInicio = document.getElementById('dataInicio').value;
     const dataFim = document.getElementById('dataFim').value;
     const busca = document.getElementById('buscaCupom').value.toLowerCase();
-    
-    resultadoDiv.innerHTML = "<p style='color:var(--teal-neon)'>Iniciando sorteio VIP...</p>";
+
+    botaoSortear.disabled = true;
+    botaoSortear.innerText = "SORTEIO EM ANDAMENTO...";
+    resultadoDiv.innerHTML = `
+        <div class="animacao-sorteio">
+            Preparando sorteio VIP...
+        </div>
+    `;
 
     database.ref('cupons').once('value', (snapshot) => {
         const data = snapshot.val();
-        if(!data) {
+
+        if (!data) {
             resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom encontrado no banco de dados.</p>";
+            botaoSortear.disabled = false;
+            botaoSortear.innerText = "REALIZAR SORTEIO AGORA";
             return;
         }
 
         let listaCupons = Object.values(data);
 
-        // 1. FILTRO DE DATA (Ajustado para pegar o dia atual corretamente)
         if (dataInicio || dataFim) {
             listaCupons = listaCupons.filter(cupom => {
                 const dataCupomapenasDia = cupom.data_cadastro.split('T')[0];
@@ -494,58 +536,101 @@ function sortear() {
             });
         }
 
-        // 2. FILTRO DE BUSCA (Se você pesquisou nome ou telefone no painel)
         if (busca) {
-            listaCupons = listaCupons.filter(cupom => 
-                cupom.nome.toLowerCase().includes(busca) || 
+            listaCupons = listaCupons.filter(cupom =>
+                cupom.nome.toLowerCase().includes(busca) ||
                 cupom.tel.includes(busca)
             );
         }
 
-        // Verifica se sobrou alguém após os filtros
         if (listaCupons.length === 0) {
             resultadoDiv.innerHTML = "<p style='color:#ff6b6b'>Nenhum cupom disponível no período selecionado.</p>";
+            botaoSortear.disabled = false;
+            botaoSortear.innerText = "REALIZAR SORTEIO AGORA";
             return;
         }
 
-        // Define a quantidade de ganhadores
         let qtd = parseInt(document.getElementById('qtdSorteio').value);
+
         if (isNaN(qtd) || qtd < 1) qtd = 1;
+        if (qtd > 5) qtd = 5;
         if (qtd > listaCupons.length) qtd = listaCupons.length;
 
-        resultadoDiv.innerHTML = "";
-
-        // LÓGICA DO SORTEIO (Embaralha a lista e pega os primeiros)
         let sorteados = listaCupons.sort(() => 0.5 - Math.random()).slice(0, qtd);
 
-        sorteados.forEach((s, index) => {
-            const ultimos4 = s.tel.slice(-4);
-            const ddd = s.tel.slice(0, 2);
-            const card = document.createElement('div');
-            card.className = 'sorteado-card';
-            
-            // Exibe os dados, incluindo a plataforma que adicionamos
-            card.innerHTML = `
-                <strong style="color:var(--teal-neon)">${index+1}º GANHADOR(A)</strong><br>
-                <span style="font-size:1.2rem; font-weight:700;">${s.nome.toUpperCase()}</span><br>
-                <span style="color:var(--text-muted); font-size:0.8rem;">
-                    Loja: ${s.plataforma || 'Não informada'} | Cupom: ${s.cupom}
-                </span><br>
-                <span style="color:var(--text-muted); font-size:0.8rem;">
-                    Data: ${new Date(s.data_cadastro).toLocaleDateString('pt-BR')}
-                </span><br>
-                <div style="margin-top:10px;">
-                    <span style="color:var(--text-main);">WhatsApp: (${ddd}) ****-****${ultimos4}</span><br>
-                    <button onclick="revelarSorteado(this, '${s.tel}')" class="reveal-btn">REVELAR NÚMERO COMPLETO</button>
-                </div>
-            `;
-            resultadoDiv.appendChild(card);
-        });
-
-        // Rola a tela para os ganhadores
+        resultadoDiv.innerHTML = "";
         resultadoDiv.scrollIntoView({ behavior: 'smooth' });
+
+        revelarComAnimacao(sorteados, 0, botaoSortear);
     });
 }
+
+    function revelarComAnimacao(sorteados, index, botaoSortear) {
+    const resultadoDiv = document.getElementById('resultadoSorteio');
+
+    if (index >= sorteados.length) {
+        botaoSortear.disabled = false;
+        botaoSortear.innerText = "REALIZAR SORTEIO AGORA";
+        return;
+    }
+
+    const numeroGanhador = index + 1;
+
+    resultadoDiv.innerHTML += `
+        <div class="animacao-sorteio" id="animacaoAtual">
+            🎲 Sorteando ${numeroGanhador}º ganhador...
+            <div class="contagem" id="contadorAnimado">3</div>
+        </div>
+    `;
+
+    const contador = document.getElementById('contadorAnimado');
+
+    setTimeout(() => {
+        contador.innerText = "2";
+    }, 1000);
+
+    setTimeout(() => {
+        contador.innerText = "1";
+    }, 2000);
+
+    setTimeout(() => {
+        const animacaoAtual = document.getElementById('animacaoAtual');
+        if (animacaoAtual) {
+            animacaoAtual.remove();
+        }
+
+        const s = sorteados[index];
+        const ultimos4 = s.tel.slice(-4);
+        const ddd = s.tel.slice(0, 2);
+
+        const card = document.createElement('div');
+        card.className = 'sorteado-card';
+
+        card.innerHTML = `
+            <strong style="color:var(--teal-neon)">${numeroGanhador}º GANHADOR(A)</strong><br>
+            <span style="font-size:1.2rem; font-weight:700;">${s.nome.toUpperCase()}</span><br>
+            <span style="color:var(--text-muted); font-size:0.8rem;">
+                Loja: ${s.plataforma || 'Não informada'} | Cupom: ${s.cupom}
+            </span><br>
+            <span style="color:var(--text-muted); font-size:0.8rem;">
+                Data: ${new Date(s.data_cadastro).toLocaleDateString('pt-BR')}
+            </span><br>
+            <div style="margin-top:10px;">
+                <span style="color:var(--text-main);">WhatsApp: (${ddd}) ****-****${ultimos4}</span><br>
+                <button onclick="revelarSorteado(this, '${s.tel}')" class="reveal-btn">REVELAR NÚMERO COMPLETO</button>
+            </div>
+        `;
+
+        resultadoDiv.appendChild(card);
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => {
+            revelarComAnimacao(sorteados, index + 1, botaoSortear);
+        }, 1800);
+
+    }, 3000);
+}
+    
 function revelarSorteado(btn, tel) {
     // Essa linha garante que o número apareça formatado corretamente (XX) X XXXX-XXXX
     const formatado = `(${tel.slice(0,2)}) ${tel.slice(2,7)}-${tel.slice(7)}`;
