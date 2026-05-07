@@ -663,7 +663,7 @@ if (categoriasSelecionadas.length === 0) {
         if (qtd > 5) qtd = 5;
         if (qtd > listaCupons.length) qtd = listaCupons.length;
 
-        let sorteados = listaCupons.sort(() => 0.5 - Math.random()).slice(0, qtd);
+      let sorteados = sortearSemRepetirTelefoneNaCategoria(listaCupons, qtd);
 
         resultadoDiv.innerHTML = "";
         resultadoDiv.scrollIntoView({ behavior: 'smooth' });
@@ -671,6 +671,28 @@ if (categoriasSelecionadas.length === 0) {
         revelarComAnimacao(sorteados, 0, botaoSortear);
     });
 }
+
+    function sortearSemRepetirTelefoneNaCategoria(listaCupons, qtd) {
+    let embaralhados = listaCupons.sort(() => 0.5 - Math.random());
+    let sorteados = [];
+    let ganhadoresPorCategoria = new Set();
+
+    for (let cupom of embaralhados) {
+        let chave = cupom.tel + "_" + cupom.plataforma;
+
+        if (!ganhadoresPorCategoria.has(chave)) {
+            sorteados.push(cupom);
+            ganhadoresPorCategoria.add(chave);
+        }
+
+        if (sorteados.length >= qtd) {
+            break;
+        }
+    }
+
+    return sorteados;
+}
+    
 
     function revelarComAnimacao(sorteados, index, botaoSortear) {
     const resultadoDiv = document.getElementById('resultadoSorteio');
@@ -716,15 +738,22 @@ if (categoriasSelecionadas.length === 0) {
         card.innerHTML = `
             <strong style="color:var(--teal-neon)">${numeroGanhador}º GANHADOR(A)</strong><br>
             <span style="font-size:1.2rem; font-weight:700;">${s.nome.toUpperCase()}</span><br>
-            <span style="color:var(--text-muted); font-size:0.8rem;">
-                Loja: ${s.plataforma || 'Não informada'} | Cupom: ${s.cupom}
-            </span><br>
+          <span style="color:var(--text-muted); font-size:0.8rem;">
+    Categoria: ${s.plataforma || 'Não informada'}
+</span><br>
+
+<span style="color:var(--text-muted); font-size:0.8rem;">
+    Identificação: ************
+</span><br>
+
             <span style="color:var(--text-muted); font-size:0.8rem;">
                 Data: ${new Date(s.data_cadastro).toLocaleDateString('pt-BR')}
             </span><br>
             <div style="margin-top:10px;">
                 <span style="color:var(--text-main);">WhatsApp: (${ddd}) ****-****${ultimos4}</span><br>
-                <button onclick="revelarSorteado(this, '${s.tel}')" class="reveal-btn">REVELAR NÚMERO COMPLETO</button>
+               <button onclick="revelarSorteado(this, '${s.tel}', '${s.cupom}', '${s.plataforma}')" class="reveal-btn">
+    REVELAR DADOS COMPLETOS
+</button>
             </div>
         `;
 
@@ -738,10 +767,31 @@ if (categoriasSelecionadas.length === 0) {
     }, 3000);
 }
     
-function revelarSorteado(btn, tel) {
-    // Essa linha garante que o número apareça formatado corretamente (XX) X XXXX-XXXX
+function revelarSorteado(btn, tel, identificacao, plataforma) {
     const formatado = `(${tel.slice(0,2)}) ${tel.slice(2,7)}-${tel.slice(7)}`;
-    btn.parentElement.innerHTML = btn.parentElement.innerHTML.split('<button')[0] + `<br><span style="color:var(--teal-neon); font-size:1.1rem; font-weight:600;">${formatado}</span>`;
+
+    let nomeIdentificacao = "Identificação";
+
+    if (plataforma === "Shopee" || plataforma === "Mercado Livre") {
+        nomeIdentificacao = "Código da compra";
+    } else if (plataforma === "Inscrito") {
+        nomeIdentificacao = "Canal informado";
+    } else if (
+        plataforma === "Bronzify" ||
+        plataforma === "Barunx" ||
+        plataforma === "Zoíde"
+    ) {
+        nomeIdentificacao = "E-mail informado";
+    }
+
+    btn.parentElement.innerHTML = `
+        <span style="color:var(--teal-neon); font-size:1.1rem; font-weight:600;">
+            WhatsApp: ${formatado}
+        </span><br>
+        <span style="color:var(--teal-neon); font-size:1rem; font-weight:600;">
+            ${nomeIdentificacao}: ${identificacao}
+        </span>
+    `;
 }
 
    function toggleLogin() {
